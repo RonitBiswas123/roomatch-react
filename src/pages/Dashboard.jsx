@@ -1,7 +1,9 @@
-import { useState, useEffect } from 'react'
-import Navbar from '../components/Navbar'
-import Button from '../components/Button'
-import Card from '../components/Card'
+// Add these imports at the top of Dashboard.jsx
+import ProfileCard from '../components/ProfileCard'
+import FilterBar from '../components/FilterBar'
+import { useState, useEffect, useMemo } from 'react'
+
+
 
 const allStudents = [
   { id: 1, name: 'Rahul Sharma',  branch: 'CSE', year: 2, gender: 'Male',   sleepTime: '12AM - 2AM',  cleanliness: 'Clean',      noise: 'Quiet',    studyHours: '4-6 hrs' },
@@ -28,6 +30,23 @@ function Dashboard({ navigate, userProfile, onLogout }) {
   const [stats,     setStats]     = useState(null)
   const [activeTab, setActiveTab] = useState('overview')
   const [greeting,  setGreeting]  = useState('')
+  const [search,       setSearch]       = useState('')
+const [filterBranch, setFilterBranch] = useState('')
+const [filterYear,   setFilterYear]   = useState('')
+const [filterGender, setFilterGender] = useState('')
+const [sortBy,       setSortBy]       = useState('compatibility')
+
+const filteredMatches = useMemo(() => {
+  let result = [...matches]
+  if (search)       result = result.filter(s => s.name.toLowerCase().includes(search.toLowerCase()))
+  if (filterBranch) result = result.filter(s => s.branch === filterBranch)
+  if (filterYear)   result = result.filter(s => String(s.year) === filterYear)
+  if (filterGender) result = result.filter(s => s.gender === filterGender)
+  if (sortBy === 'compatibility') result.sort((a, b) => b.compatibility - a.compatibility)
+  if (sortBy === 'name')          result.sort((a, b) => a.name.localeCompare(b.name))
+  if (sortBy === 'year')          result.sort((a, b) => a.year - b.year)
+  return result
+}, [matches, search, filterBranch, filterYear, filterGender, sortBy])
 
   useEffect(() => {
     const hour = new Date().getHours()
@@ -158,35 +177,45 @@ function Dashboard({ navigate, userProfile, onLogout }) {
 
         {/* Matches */}
         {activeTab === 'matches' && (
-          loading ? (
-            <div className="text-center py-20 text-slate-400">
-              <div className="w-10 h-10 border-4 border-slate-200 border-t-blue-600 rounded-full animate-spin mx-auto mb-4"></div>
-              <p>Loading matches...</p>
-            </div>
-          ) : (
-            <>
-              <h3 className="text-sm font-semibold text-slate-400 uppercase tracking-wide mb-4">
-                All Matches — sorted by compatibility
-              </h3>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-                {matches.map(student => (
-                  <Card
-                    key={student.id}
-                    name={student.name}
-                    branch={student.branch}
-                    year={student.year}
-                    gender={student.gender}
-                    compatibility={student.compatibility}
-                    sleepTime={student.sleepTime}
-                    cleanliness={student.cleanliness}
-                    noise={student.noise}
-                    studyHours={student.studyHours}
-                  />
-                ))}
-              </div>
-            </>
-          )
-        )}
+  loading ? (
+    <div className="text-center py-20 text-slate-400">
+      <div className="w-10 h-10 border-4 border-slate-200 border-t-blue-600 rounded-full animate-spin mx-auto mb-4"></div>
+      <p>Loading matches...</p>
+    </div>
+  ) : (
+    <>
+      <FilterBar
+        search={search}             setSearch={setSearch}
+        filterBranch={filterBranch} setFilterBranch={setFilterBranch}
+        filterYear={filterYear}     setFilterYear={setFilterYear}
+        filterGender={filterGender} setFilterGender={setFilterGender}
+        sortBy={sortBy}             setSortBy={setSortBy}
+      />
+      <p className="text-sm text-slate-400 mb-4">
+        Showing <span className="font-semibold text-slate-700">{filteredMatches.length}</span> students
+      </p>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+        {filteredMatches.map(student => (
+          <ProfileCard
+            key={student.id}
+            name={student.name}
+            branch={student.branch}
+            year={student.year}
+            gender={student.gender}
+            compatibility={student.compatibility}
+            sleepTime={student.sleepTime}
+            wakeTime={student.wakeTime}
+            cleanliness={student.cleanliness}
+            noise={student.noise}
+            studyHours={student.studyHours}
+            guests={student.guests}
+            about={student.about}
+          />
+        ))}
+      </div>
+    </>
+  )
+)}
 
         {/* Profile tab */}
         {activeTab === 'profile' && (
