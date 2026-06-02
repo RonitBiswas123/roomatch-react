@@ -1,20 +1,38 @@
 function Navbar({ navigate, userProfile, onLogout }) {
   return (
-    <nav className="navbar">
-      <span className="navbar-brand" onClick={() => navigate('home')}>
+    <nav className="bg-slate-900 px-8 py-4 flex justify-between items-center">
+      <span
+        className="text-white text-xl font-bold cursor-pointer"
+        onClick={() => navigate('home')}
+      >
         RoomMatch
       </span>
-      <div className="navbar-links">
+      <div className="flex gap-6 items-center">
         {userProfile ? (
           <>
-            <a onClick={() => navigate('dashboard')}>Dashboard</a>
-            <a onClick={() => navigate('profile')}>Edit Profile</a>
-            <a onClick={onLogout} style={{ color: '#ff6b6b' }}>Logout</a>
+            <a onClick={() => navigate('dashboard')}
+               className="text-blue-300 hover:text-white cursor-pointer text-sm">
+              Dashboard
+            </a>
+            <a onClick={() => navigate('profile')}
+               className="text-blue-300 hover:text-white cursor-pointer text-sm">
+              Edit Profile
+            </a>
+            <a onClick={onLogout}
+               className="text-red-400 hover:text-red-300 cursor-pointer text-sm">
+              Logout
+            </a>
           </>
         ) : (
           <>
-            <a onClick={() => navigate('login')}>Login</a>
-            <a onClick={() => navigate('register')}>Register</a>
+            <a onClick={() => navigate('login')}
+               className="text-blue-300 hover:text-white cursor-pointer text-sm">
+              Login
+            </a>
+            <a onClick={() => navigate('register')}
+               className="text-blue-300 hover:text-white cursor-pointer text-sm">
+              Register
+            </a>
           </>
         )}
       </div>

@@ -34,81 +34,68 @@ function Register({ navigate, setUser }) {
   }
 
   const handleSubmit = (e) => {
-  e.preventDefault()
-  const newErrors = validate()
-  if (Object.keys(newErrors).length > 0) {
-    setErrors(newErrors)
-    return
+    e.preventDefault()
+    const newErrors = validate()
+    if (Object.keys(newErrors).length > 0) { setErrors(newErrors); return }
+    setUser(form)
+    setSuccess(true)
   }
-  setUser(form)        // ← this must be here
-  setSuccess(true)     // ← then this
-}
+
+  const inputClass = (field) =>
+    `w-full px-4 py-2.5 border rounded-lg text-sm outline-none transition-colors ${errors[field] ? 'border-red-400' : 'border-slate-200 focus:border-blue-500'}`
 
   if (success) {
-  return (
-    <div>
-      <Navbar navigate={navigate} />
-      <div className="success-container">
-        <div className="success-card">
-          <h2>🎉 Registered!</h2>
-          <p>Welcome, {form.name}! Now set up your profile.</p>
-          <button
-            className="btn btn-primary"
-            onClick={() => navigate('profile')}
-          >
-            Set Up Profile
-          </button>
+    return (
+      <div className="min-h-screen bg-slate-50">
+        <Navbar navigate={navigate} />
+        <div className="flex justify-center items-center min-h-[85vh] px-4">
+          <div className="bg-white rounded-2xl shadow-lg p-12 text-center max-w-md w-full">
+            <h2 className="text-3xl font-bold text-slate-900 mb-3">🎉 Registered!</h2>
+            <p className="text-slate-400 mb-8">Welcome, {form.name}! Now set up your profile.</p>
+            <Button text="Set Up Profile" type="primary" onClick={() => navigate('profile')} />
+          </div>
         </div>
       </div>
-    </div>
-  )
-}
+    )
+  }
 
   return (
-    <div>
+    <div className="min-h-screen bg-slate-50">
       <Navbar navigate={navigate} />
-      <div className="auth-container">
-        <div className="auth-card">
-          <h2>Create Account</h2>
-          <p className="subtitle">Join RoomMatch and find your perfect roommate</p>
+      <div className="flex justify-center items-center py-12 px-4">
+        <div className="bg-white rounded-2xl shadow-lg p-10 w-full max-w-md">
+          <h2 className="text-2xl font-bold text-slate-900 mb-1">Create Account</h2>
+          <p className="text-sm text-slate-400 mb-7">Join RoomMatch and find your perfect roommate</p>
 
-          <form onSubmit={handleSubmit}>
+          <form onSubmit={handleSubmit} className="flex flex-col gap-4">
 
-            <div className="form-group">
-              <label>Full Name</label>
+            <div>
+              <label className="block text-xs font-semibold text-slate-500 mb-1">Full Name</label>
               <input type="text" placeholder="Rahul Sharma" value={form.name}
-                onChange={(e) => update('name', e.target.value)}
-                className={errors.name ? 'input-error' : ''} />
-              {errors.name && <span className="error-msg">{errors.name}</span>}
+                onChange={(e) => update('name', e.target.value)} className={inputClass('name')} />
+              {errors.name && <p className="text-red-500 text-xs mt-1">{errors.name}</p>}
             </div>
 
-            <div className="form-group">
-              <label>Email</label>
+            <div>
+              <label className="block text-xs font-semibold text-slate-500 mb-1">Email</label>
               <input type="email" placeholder="you@college.edu" value={form.email}
-                onChange={(e) => update('email', e.target.value)}
-                className={errors.email ? 'input-error' : ''} />
-              {errors.email && <span className="error-msg">{errors.email}</span>}
+                onChange={(e) => update('email', e.target.value)} className={inputClass('email')} />
+              {errors.email && <p className="text-red-500 text-xs mt-1">{errors.email}</p>}
             </div>
 
-            <div className="form-group">
-              <label>Password</label>
+            <div>
+              <label className="block text-xs font-semibold text-slate-500 mb-1">Password</label>
               <input type="password" placeholder="••••••••" value={form.password}
-                onChange={(e) => update('password', e.target.value)}
-                className={errors.password ? 'input-error' : ''} />
-              {strength && (
-                <span className={`strength-msg strength-${strength}`}>
-                  {strength === 'weak'   && '🔴 Too short'}
-                  {strength === 'medium' && '🟡 Medium'}
-                  {strength === 'strong' && '🟢 Strong'}
-                </span>
-              )}
-              {errors.password && <span className="error-msg">{errors.password}</span>}
+                onChange={(e) => update('password', e.target.value)} className={inputClass('password')} />
+              {strength === 'weak'   && <p className="text-red-500   text-xs mt-1">🔴 Too short</p>}
+              {strength === 'medium' && <p className="text-yellow-500 text-xs mt-1">🟡 Medium</p>}
+              {strength === 'strong' && <p className="text-green-500  text-xs mt-1">🟢 Strong</p>}
+              {errors.password && <p className="text-red-500 text-xs mt-1">{errors.password}</p>}
             </div>
 
-            <div className="form-group">
-              <label>Branch</label>
-              <select value={form.branch} onChange={(e) => update('branch', e.target.value)}
-                className={errors.branch ? 'input-error' : ''}>
+            <div>
+              <label className="block text-xs font-semibold text-slate-500 mb-1">Branch</label>
+              <select value={form.branch} onChange={(e) => update('branch', e.target.value)} className={inputClass('branch')}>
                 <option value="">Select Branch</option>
                 <option value="CSE">CSE</option>
                 <option value="ECE">ECE</option>
@@ -116,27 +103,26 @@ function Register({ navigate, setUser }) {
                 <option value="CE">CE</option>
                 <option value="EE">EE</option>
               </select>
-              {errors.branch && <span className="error-msg">{errors.branch}</span>}
+              {errors.branch && <p className="text-red-500 text-xs mt-1">{errors.branch}</p>}
             </div>
 
-            <div className="form-group">
-              <label>Year</label>
-              <select value={form.year} onChange={(e) => update('year', e.target.value)}
-                className={errors.year ? 'input-error' : ''}>
+            <div>
+              <label className="block text-xs font-semibold text-slate-500 mb-1">Year</label>
+              <select value={form.year} onChange={(e) => update('year', e.target.value)} className={inputClass('year')}>
                 <option value="">Select Year</option>
                 <option value="1">1st Year</option>
                 <option value="2">2nd Year</option>
                 <option value="3">3rd Year</option>
                 <option value="4">4th Year</option>
               </select>
-              {errors.year && <span className="error-msg">{errors.year}</span>}
+              {errors.year && <p className="text-red-500 text-xs mt-1">{errors.year}</p>}
             </div>
 
-            <div className="form-group">
-              <label>Gender</label>
-              <div className="radio-group">
+            <div>
+              <label className="block text-xs font-semibold text-slate-500 mb-1">Gender</label>
+              <div className="flex gap-6 mt-1">
                 {['Male', 'Female', 'Other'].map(g => (
-                  <label key={g}>
+                  <label key={g} className="flex items-center gap-2 text-sm text-slate-600 cursor-pointer">
                     <input type="radio" name="gender" value={g}
                       checked={form.gender === g}
                       onChange={(e) => update('gender', e.target.value)} />
@@ -144,17 +130,18 @@ function Register({ navigate, setUser }) {
                   </label>
                 ))}
               </div>
-              {errors.gender && <span className="error-msg">{errors.gender}</span>}
+              {errors.gender && <p className="text-red-500 text-xs mt-1">{errors.gender}</p>}
             </div>
 
             <Button text="Register" type="primary" fullWidth={true} submit={true} />
-
           </form>
 
-          <div className="auth-link">
+          <p className="text-center text-sm text-slate-400 mt-5">
             Already have an account?{' '}
-            <a onClick={() => navigate('login')}>Login here</a>
-          </div>
+            <a onClick={() => navigate('login')} className="text-blue-600 font-semibold cursor-pointer">
+              Login here
+            </a>
+          </p>
         </div>
       </div>
     </div>

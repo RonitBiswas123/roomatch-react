@@ -13,22 +13,28 @@ const sampleStudents = [
 
 function Home({ navigate, userProfile }) {
   return (
-    <div>
+    <div className="min-h-screen bg-slate-50">
       <Navbar navigate={navigate} userProfile={userProfile} />
 
-      <div className="hero">
-        <h2>Find Your Perfect Roommate</h2>
-        <p>Match with students who share your sleep schedule, habits, and vibe.</p>
-        <div className="hero-buttons">
+      <div className="text-center py-20 px-4">
+        <h2 className="text-5xl font-bold text-slate-900 mb-4">
+          Find Your Perfect Roommate
+        </h2>
+        <p className="text-lg text-slate-500 mb-8 max-w-xl mx-auto">
+          Match with students who share your sleep schedule, habits, and vibe.
+        </p>
+        <div className="flex gap-4 justify-center">
           <Button text="Get Started" type="primary" onClick={() => navigate('register')} />
           <Button text="Login"       type="outline"  onClick={() => navigate('login')}    />
         </div>
       </div>
 
       {userProfile && (
-        <div style={{ padding: '0 32px', maxWidth: 960, margin: '0 auto' }}>
-          <h3 style={{ fontSize: 16, color: '#888', marginBottom: 16 }}>Your Profile</h3>
-          <div className="cards-grid" style={{ padding: 0, marginBottom: 32 }}>
+        <div className="max-w-5xl mx-auto px-8 mb-8">
+          <h3 className="text-sm font-semibold text-slate-400 uppercase tracking-wide mb-4">
+            Your Profile
+          </h3>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 mb-8">
             <Card
               name={userProfile.name}
               branch={userProfile.branch}
@@ -41,25 +47,29 @@ function Home({ navigate, userProfile }) {
               studyHours={userProfile.studyHours}
             />
           </div>
-          <h3 style={{ fontSize: 16, color: '#888', marginBottom: 16 }}>Suggested Roommates</h3>
+          <h3 className="text-sm font-semibold text-slate-400 uppercase tracking-wide mb-4">
+            Suggested Roommates
+          </h3>
         </div>
       )}
 
-      <div className="cards-grid">
-        {sampleStudents.map(student => (
-          <Card
-            key={student.id}
-            name={student.name}
-            branch={student.branch}
-            year={student.year}
-            gender={student.gender}
-            compatibility={student.compatibility}
-            sleepTime={student.sleepTime}
-            cleanliness={student.cleanliness}
-            noise={student.noise}
-            studyHours={student.studyHours}
-          />
-        ))}
+      <div className="max-w-5xl mx-auto px-8 pb-12">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+          {sampleStudents.map(student => (
+            <Card
+              key={student.id}
+              name={student.name}
+              branch={student.branch}
+              year={student.year}
+              gender={student.gender}
+              compatibility={student.compatibility}
+              sleepTime={student.sleepTime}
+              cleanliness={student.cleanliness}
+              noise={student.noise}
+              studyHours={student.studyHours}
+            />
+          ))}
+        </div>
       </div>
     </div>
   )

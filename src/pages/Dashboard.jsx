@@ -40,10 +40,7 @@ function Dashboard({ navigate, userProfile, onLogout }) {
     if (!userProfile) return
     setLoading(true)
     const timer = setTimeout(() => {
-      const scored = allStudents.map(student => ({
-        ...student,
-        compatibility: calcCompatibility(userProfile, student)
-      }))
+      const scored = allStudents.map(s => ({ ...s, compatibility: calcCompatibility(userProfile, s) }))
       const sorted = scored.sort((a, b) => b.compatibility - a.compatibility)
       setMatches(sorted)
       setLoading(false)
@@ -53,10 +50,11 @@ function Dashboard({ navigate, userProfile, onLogout }) {
 
   useEffect(() => {
     if (matches.length === 0) return
-    const topMatch    = matches[0]
-    const avgScore    = Math.round(matches.reduce((sum, m) => sum + m.compatibility, 0) / matches.length)
-    const highMatches = matches.filter(m => m.compatibility >= 50).length
-    setStats({ topMatch, avgScore, highMatches })
+    setStats({
+      topMatch:    matches[0],
+      avgScore:    Math.round(matches.reduce((s, m) => s + m.compatibility, 0) / matches.length),
+      highMatches: matches.filter(m => m.compatibility >= 50).length
+    })
   }, [matches])
 
   useEffect(() => {
@@ -66,12 +64,12 @@ function Dashboard({ navigate, userProfile, onLogout }) {
 
   if (!userProfile) {
     return (
-      <div>
+      <div className="min-h-screen bg-slate-50">
         <Navbar navigate={navigate} onLogout={onLogout} />
-        <div className="success-container">
-          <div className="success-card">
-            <h2>No Profile Found</h2>
-            <p>Please register and set up your profile first.</p>
+        <div className="flex justify-center items-center min-h-[85vh] px-4">
+          <div className="bg-white rounded-2xl shadow-lg p-12 text-center max-w-md w-full">
+            <h2 className="text-2xl font-bold text-slate-900 mb-3">No Profile Found</h2>
+            <p className="text-slate-400 mb-8">Please register and set up your profile first.</p>
             <Button text="Get Started" type="primary" onClick={() => navigate('register')} />
           </div>
         </div>
@@ -80,118 +78,121 @@ function Dashboard({ navigate, userProfile, onLogout }) {
   }
 
   return (
-    <div>
+    <div className="min-h-screen bg-slate-50">
       <Navbar navigate={navigate} userProfile={userProfile} onLogout={onLogout} />
 
-      <div className="dashboard-container">
+      <div className="max-w-5xl mx-auto px-8 py-8">
 
-        <div className="dashboard-header">
+        {/* Header */}
+        <div className="flex justify-between items-center mb-8">
           <div>
-            <h2>{greeting}, {userProfile.name.split(' ')[0]}! 👋</h2>
-            <p style={{ color: '#888', marginTop: 4 }}>
+            <h2 className="text-2xl font-bold text-slate-900">
+              {greeting}, {userProfile.name.split(' ')[0]}! 👋
+            </h2>
+            <p className="text-sm text-slate-400 mt-1">
               {userProfile.branch} • Year {userProfile.year} • {userProfile.gender}
             </p>
           </div>
           <Button text="Edit Profile" type="outline" onClick={() => navigate('profile')} />
         </div>
 
-        <div className="dashboard-tabs">
+        {/* Tabs */}
+        <div className="flex gap-1 border-b border-slate-200 mb-8">
           {['overview', 'matches', 'profile'].map(tab => (
-            <button
-              key={tab}
-              className={`dash-tab ${activeTab === tab ? 'dash-tab-active' : ''}`}
+            <button key={tab}
               onClick={() => setActiveTab(tab)}
+              className={`px-5 py-2.5 text-sm font-medium border-b-2 transition-colors -mb-px ${
+                activeTab === tab
+                  ? 'border-blue-600 text-blue-600'
+                  : 'border-transparent text-slate-400 hover:text-slate-600'
+              }`}
             >
               {tab.charAt(0).toUpperCase() + tab.slice(1)}
             </button>
           ))}
         </div>
 
+        {/* Overview */}
         {activeTab === 'overview' && (
-          <div>
-            {loading ? (
-              <div className="loading-container">
-                <div className="spinner"></div>
-                <p>Finding your matches...</p>
-              </div>
-            ) : (
-              <>
-                {stats && (
-                  <div className="stats-grid">
-                    <div className="stat-card">
-                      <div className="stat-num">{matches.length}</div>
-                      <div className="stat-label">Total Students</div>
+          loading ? (
+            <div className="text-center py-20 text-slate-400">
+              <div className="w-10 h-10 border-4 border-slate-200 border-t-blue-600 rounded-full animate-spin mx-auto mb-4"></div>
+              <p>Finding your matches...</p>
+            </div>
+          ) : (
+            <>
+              {stats && (
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
+                  {[
+                    { num: matches.length,            label: 'Total Students' },
+                    { num: stats.highMatches,         label: 'Good Matches'   },
+                    { num: `${stats.avgScore}%`,      label: 'Avg Compatibility' },
+                    { num: `${stats.topMatch.compatibility}%`, label: 'Best Match' },
+                  ].map(s => (
+                    <div key={s.label} className="bg-white rounded-xl p-5 text-center shadow-sm">
+                      <div className="text-3xl font-bold text-blue-600 mb-1">{s.num}</div>
+                      <div className="text-xs text-slate-400 font-medium">{s.label}</div>
                     </div>
-                    <div className="stat-card">
-                      <div className="stat-num">{stats.highMatches}</div>
-                      <div className="stat-label">Good Matches</div>
-                    </div>
-                    <div className="stat-card">
-                      <div className="stat-num">{stats.avgScore}%</div>
-                      <div className="stat-label">Avg Compatibility</div>
-                    </div>
-                    <div className="stat-card">
-                      <div className="stat-num">{stats.topMatch.compatibility}%</div>
-                      <div className="stat-label">Best Match</div>
-                    </div>
-                  </div>
-                )}
-                <h3 className="section-title">Your Top Match</h3>
-                {stats && (
-                  <div className="cards-grid" style={{ padding: 0 }}>
-                    <Card
-                      name={stats.topMatch.name}
-                      branch={stats.topMatch.branch}
-                      year={stats.topMatch.year}
-                      gender={stats.topMatch.gender}
-                      compatibility={stats.topMatch.compatibility}
-                      sleepTime={stats.topMatch.sleepTime}
-                      cleanliness={stats.topMatch.cleanliness}
-                      noise={stats.topMatch.noise}
-                      studyHours={stats.topMatch.studyHours}
-                    />
-                  </div>
-                )}
-              </>
-            )}
-          </div>
-        )}
-
-        {activeTab === 'matches' && (
-          <div>
-            {loading ? (
-              <div className="loading-container">
-                <div className="spinner"></div>
-                <p>Loading matches...</p>
-              </div>
-            ) : (
-              <>
-                <h3 className="section-title">All Matches — sorted by compatibility</h3>
-                <div className="cards-grid" style={{ padding: 0 }}>
-                  {matches.map(student => (
-                    <Card
-                      key={student.id}
-                      name={student.name}
-                      branch={student.branch}
-                      year={student.year}
-                      gender={student.gender}
-                      compatibility={student.compatibility}
-                      sleepTime={student.sleepTime}
-                      cleanliness={student.cleanliness}
-                      noise={student.noise}
-                      studyHours={student.studyHours}
-                    />
                   ))}
                 </div>
-              </>
-            )}
-          </div>
+              )}
+              <h3 className="text-sm font-semibold text-slate-400 uppercase tracking-wide mb-4">Your Top Match</h3>
+              {stats && (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+                  <Card
+                    name={stats.topMatch.name}
+                    branch={stats.topMatch.branch}
+                    year={stats.topMatch.year}
+                    gender={stats.topMatch.gender}
+                    compatibility={stats.topMatch.compatibility}
+                    sleepTime={stats.topMatch.sleepTime}
+                    cleanliness={stats.topMatch.cleanliness}
+                    noise={stats.topMatch.noise}
+                    studyHours={stats.topMatch.studyHours}
+                  />
+                </div>
+              )}
+            </>
+          )
         )}
 
+        {/* Matches */}
+        {activeTab === 'matches' && (
+          loading ? (
+            <div className="text-center py-20 text-slate-400">
+              <div className="w-10 h-10 border-4 border-slate-200 border-t-blue-600 rounded-full animate-spin mx-auto mb-4"></div>
+              <p>Loading matches...</p>
+            </div>
+          ) : (
+            <>
+              <h3 className="text-sm font-semibold text-slate-400 uppercase tracking-wide mb-4">
+                All Matches — sorted by compatibility
+              </h3>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+                {matches.map(student => (
+                  <Card
+                    key={student.id}
+                    name={student.name}
+                    branch={student.branch}
+                    year={student.year}
+                    gender={student.gender}
+                    compatibility={student.compatibility}
+                    sleepTime={student.sleepTime}
+                    cleanliness={student.cleanliness}
+                    noise={student.noise}
+                    studyHours={student.studyHours}
+                  />
+                ))}
+              </div>
+            </>
+          )
+        )}
+
+        {/* Profile tab */}
         {activeTab === 'profile' && (
-          <div className="profile-summary">
-            <h3 className="section-title">Your Habits</h3>
-            <div className="habit-grid">
+          <>
+            <h3 className="text-sm font-semibold text-slate-400 uppercase tracking-wide mb-4">Your Habits</h3>
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 mb-6">
               {[
                 { label: 'Sleep Time',  value: userProfile.sleepTime,   icon: '🌙' },
                 { label: 'Wake Time',   value: userProfile.wakeTime,    icon: '☀️' },
@@ -200,23 +201,21 @@ function Dashboard({ navigate, userProfile, onLogout }) {
                 { label: 'Noise Level', value: userProfile.noise,       icon: '🔊' },
                 { label: 'Guests',      value: userProfile.guests,      icon: '👥' },
               ].map(item => (
-                <div key={item.label} className="habit-card">
-                  <div className="habit-icon">{item.icon}</div>
-                  <div className="habit-label">{item.label}</div>
-                  <div className="habit-value">{item.value || '—'}</div>
+                <div key={item.label} className="bg-white rounded-xl p-5 text-center shadow-sm">
+                  <div className="text-2xl mb-2">{item.icon}</div>
+                  <div className="text-xs text-slate-400 mb-1">{item.label}</div>
+                  <div className="text-sm font-semibold text-slate-900">{item.value || '—'}</div>
                 </div>
               ))}
             </div>
             {userProfile.about && (
-              <div className="about-box">
-                <h4>About</h4>
-                <p>{userProfile.about}</p>
+              <div className="bg-white rounded-xl p-5 shadow-sm mb-6">
+                <h4 className="text-xs text-slate-400 font-semibold mb-2">About</h4>
+                <p className="text-sm text-slate-700 leading-relaxed">{userProfile.about}</p>
               </div>
             )}
-            <div style={{ marginTop: 24 }}>
-              <Button text="Edit Profile" type="primary" onClick={() => navigate('profile')} />
-            </div>
-          </div>
+            <Button text="Edit Profile" type="primary" onClick={() => navigate('profile')} />
+          </>
         )}
 
       </div>

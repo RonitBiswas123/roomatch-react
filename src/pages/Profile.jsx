@@ -32,132 +32,76 @@ function Profile({ navigate, user, setUserProfile }) {
   const handleSubmit = (e) => {
     e.preventDefault()
     const newErrors = validate()
-    if (Object.keys(newErrors).length > 0) {
-      setErrors(newErrors)
-      return
-    }
+    if (Object.keys(newErrors).length > 0) { setErrors(newErrors); return }
     const fullProfile = { ...user, sleepTime, wakeTime, studyHours, cleanliness, noise, guests, about }
-    console.log('Profile saved:', fullProfile)
     setUserProfile(fullProfile)
     setSaved(true)
   }
 
- if (saved) {
-  return (
-    <div>
-      <Navbar navigate={navigate} />
-      <div className="success-container">
-        <div className="success-card">
-          <h2>Profile Saved!</h2>
-          <p>Your profile is ready. Go to your dashboard!</p>
-          <button
-            className="btn btn-primary"
-            onClick={() => navigate('dashboard')}
-          >
-            Go to Dashboard
-          </button>
+  const selectClass = (field) =>
+    `w-full px-4 py-2.5 border rounded-lg text-sm outline-none bg-white transition-colors ${errors[field] ? 'border-red-400' : 'border-slate-200 focus:border-blue-500'}`
+
+  if (saved) {
+    return (
+      <div className="min-h-screen bg-slate-50">
+        <Navbar navigate={navigate} />
+        <div className="flex justify-center items-center min-h-[85vh] px-4">
+          <div className="bg-white rounded-2xl shadow-lg p-12 text-center max-w-md w-full">
+            <h2 className="text-3xl font-bold text-slate-900 mb-3">Profile Saved! ✅</h2>
+            <p className="text-slate-400 mb-8">Your profile is ready. Go to your dashboard!</p>
+            <Button text="Go to Dashboard" type="primary" onClick={() => navigate('dashboard')} />
+          </div>
         </div>
       </div>
-    </div>
-  )
-}
+    )
+  }
 
   return (
-    <div>
+    <div className="min-h-screen bg-slate-50">
       <Navbar navigate={navigate} />
-      <div className="profile-setup-container">
+      <div className="max-w-4xl mx-auto px-6 py-10 flex gap-8 items-start">
 
-        <div className="profile-setup-form">
-          <h2>Set Up Your Profile</h2>
-          <p className="subtitle">Tell us about your habits so we can find your perfect match</p>
+        {/* Form */}
+        <div className="flex-1 bg-white rounded-2xl shadow-lg p-8">
+          <h2 className="text-2xl font-bold text-slate-900 mb-1">Set Up Your Profile</h2>
+          <p className="text-sm text-slate-400 mb-6">Tell us about your habits to find your perfect match</p>
 
-          <form onSubmit={handleSubmit}>
+          <form onSubmit={handleSubmit} className="flex flex-col gap-4">
 
-            <div className="form-group">
-              <label>Usual Sleep Time</label>
-              <select value={sleepTime} onChange={(e) => setSleepTime(e.target.value)}
-                className={errors.sleepTime ? 'input-error' : ''}>
-                <option value="">Select sleep time</option>
-                <option value="Before 10PM">Before 10 PM</option>
-                <option value="10PM - 12AM">10 PM – 12 AM</option>
-                <option value="12AM - 2AM">12 AM – 2 AM</option>
-                <option value="After 2AM">After 2 AM</option>
-              </select>
-              {errors.sleepTime && <span className="error-msg">{errors.sleepTime}</span>}
-            </div>
+            {[
+              { label: 'Usual Sleep Time', value: sleepTime, set: setSleepTime, field: 'sleepTime',
+                options: ['Before 10PM', '10PM - 12AM', '12AM - 2AM', 'After 2AM'] },
+              { label: 'Usual Wake Time', value: wakeTime, set: setWakeTime, field: 'wakeTime',
+                options: ['Before 6AM', '6AM - 8AM', '8AM - 10AM', 'After 10AM'] },
+              { label: 'Daily Study Hours', value: studyHours, set: setStudyHours, field: 'studyHours',
+                options: ['0-2 hrs', '2-4 hrs', '4-6 hrs', '6+ hrs'] },
+              { label: 'Cleanliness Level', value: cleanliness, set: setCleanliness, field: 'cleanliness',
+                options: ['Very Clean', 'Clean', 'Moderate', 'Relaxed'] },
+              { label: 'Noise Preference', value: noise, set: setNoise, field: 'noise',
+                options: ['Silent', 'Quiet', 'Moderate', 'Loud'] },
+              { label: 'Guests / Visitors', value: guests, set: setGuests, field: 'guests',
+                options: ['No guests', 'Rare guests', 'Occasional', 'Frequent ok'] },
+            ].map(item => (
+              <div key={item.field}>
+                <label className="block text-xs font-semibold text-slate-500 mb-1">{item.label}</label>
+                <select value={item.value} onChange={(e) => item.set(e.target.value)} className={selectClass(item.field)}>
+                  <option value="">Select...</option>
+                  {item.options.map(o => <option key={o} value={o}>{o}</option>)}
+                </select>
+                {errors[item.field] && <p className="text-red-500 text-xs mt-1">{errors[item.field]}</p>}
+              </div>
+            ))}
 
-            <div className="form-group">
-              <label>Usual Wake Time</label>
-              <select value={wakeTime} onChange={(e) => setWakeTime(e.target.value)}
-                className={errors.wakeTime ? 'input-error' : ''}>
-                <option value="">Select wake time</option>
-                <option value="Before 6AM">Before 6 AM</option>
-                <option value="6AM - 8AM">6 AM – 8 AM</option>
-                <option value="8AM - 10AM">8 AM – 10 AM</option>
-                <option value="After 10AM">After 10 AM</option>
-              </select>
-              {errors.wakeTime && <span className="error-msg">{errors.wakeTime}</span>}
-            </div>
-
-            <div className="form-group">
-              <label>Daily Study Hours</label>
-              <select value={studyHours} onChange={(e) => setStudyHours(e.target.value)}
-                className={errors.studyHours ? 'input-error' : ''}>
-                <option value="">Select study hours</option>
-                <option value="0-2 hrs">0 – 2 hours</option>
-                <option value="2-4 hrs">2 – 4 hours</option>
-                <option value="4-6 hrs">4 – 6 hours</option>
-                <option value="6+ hrs">6+ hours</option>
-              </select>
-              {errors.studyHours && <span className="error-msg">{errors.studyHours}</span>}
-            </div>
-
-            <div className="form-group">
-              <label>Cleanliness Level</label>
-              <select value={cleanliness} onChange={(e) => setCleanliness(e.target.value)}
-                className={errors.cleanliness ? 'input-error' : ''}>
-                <option value="">Select cleanliness</option>
-                <option value="Very Clean">Very Clean</option>
-                <option value="Clean">Clean</option>
-                <option value="Moderate">Moderate</option>
-                <option value="Relaxed">Relaxed</option>
-              </select>
-              {errors.cleanliness && <span className="error-msg">{errors.cleanliness}</span>}
-            </div>
-
-            <div className="form-group">
-              <label>Noise Preference</label>
-              <select value={noise} onChange={(e) => setNoise(e.target.value)}
-                className={errors.noise ? 'input-error' : ''}>
-                <option value="">Select noise preference</option>
-                <option value="Silent">Silent always</option>
-                <option value="Quiet">Mostly quiet</option>
-                <option value="Moderate">Moderate noise ok</option>
-                <option value="Loud">Loud is fine</option>
-              </select>
-              {errors.noise && <span className="error-msg">{errors.noise}</span>}
-            </div>
-
-            <div className="form-group">
-              <label>Guests / Visitors</label>
-              <select value={guests} onChange={(e) => setGuests(e.target.value)}
-                className={errors.guests ? 'input-error' : ''}>
-                <option value="">Select guest preference</option>
-                <option value="No guests">No guests</option>
-                <option value="Rare guests">Rare guests ok</option>
-                <option value="Occasional">Occasional guests</option>
-                <option value="Frequent ok">Frequent guests ok</option>
-              </select>
-              {errors.guests && <span className="error-msg">{errors.guests}</span>}
-            </div>
-
-            <div className="form-group">
-              <label>About You <span style={{ color: '#aaa', fontWeight: 400 }}>(optional)</span></label>
+            <div>
+              <label className="block text-xs font-semibold text-slate-500 mb-1">
+                About You <span className="text-slate-300 font-normal">(optional)</span>
+              </label>
               <textarea
                 placeholder="I am a CSE student who loves coding at night..."
                 value={about}
                 onChange={(e) => setAbout(e.target.value)}
                 rows={3}
+                className="w-full px-4 py-2.5 border border-slate-200 rounded-lg text-sm outline-none focus:border-blue-500 resize-none transition-colors"
               />
             </div>
 
@@ -165,34 +109,40 @@ function Profile({ navigate, user, setUserProfile }) {
           </form>
         </div>
 
-        <div className="profile-setup-preview">
-          <p className="preview-label">Live Preview</p>
-          <div className="profile-card">
-            <div className="profile-avatar">{initials}</div>
-            <div className="profile-name">{userName}</div>
-            <div className="profile-branch">{userBranch} • Year {userYear}</div>
-            <div className="profile-tags">
-              {sleepTime   && <span className="tag">{sleepTime}</span>}
-              {cleanliness && <span className="tag">{cleanliness}</span>}
-              {noise       && <span className="tag">{noise}</span>}
-              {studyHours  && <span className="tag">{studyHours}</span>}
+        {/* Live Preview */}
+        <div className="w-72 flex-shrink-0 sticky top-6">
+          <p className="text-xs font-semibold text-slate-400 uppercase tracking-widest text-center mb-3">
+            Live Preview
+          </p>
+          <div className="bg-white rounded-2xl shadow-lg p-6 text-center">
+            <div className="w-16 h-16 rounded-full bg-blue-600 text-white text-2xl font-bold flex items-center justify-center mx-auto mb-3">
+              {initials}
             </div>
-            <div style={{ marginTop: 16, width: '100%' }}>
-              {[
-                { label: 'Sleeps',  value: sleepTime   || '—' },
-                { label: 'Wakes',   value: wakeTime    || '—' },
-                { label: 'Studies', value: studyHours  || '—' },
-                { label: 'Clean',   value: cleanliness || '—' },
-                { label: 'Noise',   value: noise       || '—' },
-                { label: 'Guests',  value: guests      || '—' },
-              ].map(item => (
-                <div key={item.label} className="preview-row">
-                  <span className="preview-key">{item.label}</span>
-                  <span className="preview-val">{item.value}</span>
-                </div>
-              ))}
+            <div className="text-lg font-semibold text-slate-900">{userName}</div>
+            <div className="text-sm text-slate-400 mb-3">{userBranch} • Year {userYear}</div>
+
+            <div className="flex flex-wrap gap-1.5 justify-center mb-4">
+              {sleepTime   && <span className="text-xs px-2 py-1 rounded-full bg-blue-50 text-blue-600">{sleepTime}</span>}
+              {cleanliness && <span className="text-xs px-2 py-1 rounded-full bg-blue-50 text-blue-600">{cleanliness}</span>}
+              {noise       && <span className="text-xs px-2 py-1 rounded-full bg-blue-50 text-blue-600">{noise}</span>}
+              {studyHours  && <span className="text-xs px-2 py-1 rounded-full bg-blue-50 text-blue-600">{studyHours}</span>}
             </div>
-            {about && <p style={{ fontSize: 13, color: '#888', marginTop: 12, textAlign: 'left' }}>{about}</p>}
+
+            {[
+              { label: 'Sleeps',  value: sleepTime   || '—' },
+              { label: 'Wakes',   value: wakeTime    || '—' },
+              { label: 'Studies', value: studyHours  || '—' },
+              { label: 'Clean',   value: cleanliness || '—' },
+              { label: 'Noise',   value: noise       || '—' },
+              { label: 'Guests',  value: guests      || '—' },
+            ].map(item => (
+              <div key={item.label} className="flex justify-between py-1.5 border-b border-slate-50 text-sm">
+                <span className="text-slate-400">{item.label}</span>
+                <span className="text-slate-700 font-medium">{item.value}</span>
+              </div>
+            ))}
+
+            {about && <p className="text-xs text-slate-400 mt-3 text-left">{about}</p>}
           </div>
         </div>
 
