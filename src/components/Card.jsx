@@ -1,9 +1,14 @@
-function Card({ name, branch, year, gender, compatibility = 88 }) {
+import Button from './Button'
+
+function Card({ name, branch, year, gender, compatibility, sleepTime, cleanliness, noise, studyHours }) {
+
   const initials = name
     .split(' ')
     .map(n => n[0])
     .join('')
     .toUpperCase()
+
+  const tags = [sleepTime, cleanliness, noise, studyHours, gender].filter(Boolean)
 
   return (
     <div className="profile-card">
@@ -11,9 +16,9 @@ function Card({ name, branch, year, gender, compatibility = 88 }) {
       <div className="profile-name">{name}</div>
       <div className="profile-branch">{branch} • Year {year}</div>
       <div className="profile-tags">
-        <span className="tag">{gender}</span>
-        <span className="tag">Night Owl</span>
-        <span className="tag">Coder</span>
+        {tags.map((tag, i) => (
+          <span key={i} className="tag">{tag}</span>
+        ))}
       </div>
       <div className="compatibility">{compatibility}%</div>
       <div className="compatibility-label">Compatibility</div>
@@ -22,5 +27,4 @@ function Card({ name, branch, year, gender, compatibility = 88 }) {
   )
 }
 
-import Button from './Button'
 export default Card

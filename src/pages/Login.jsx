@@ -2,17 +2,17 @@ import { useState } from 'react'
 import Navbar from '../components/Navbar'
 import Button from '../components/Button'
 
-function Login({ navigate }) {
-  const [email, setEmail]       = useState('')
+function Login({ navigate, setUser }) {
+  const [email,    setEmail]    = useState('')
   const [password, setPassword] = useState('')
-  const [errors, setErrors]     = useState({})
+  const [errors,   setErrors]   = useState({})
 
   const validate = () => {
-    const newErrors = {}
-    if (!email)                        newErrors.email    = 'Email is required'
-    else if (!email.includes('@'))     newErrors.email    = 'Enter a valid email'
-    if (!password)                     newErrors.password = 'Password is required'
-    return newErrors
+    const e = {}
+    if (!email)                    e.email    = 'Email is required'
+    else if (!email.includes('@')) e.email    = 'Enter a valid email'
+    if (!password)                 e.password = 'Password is required'
+    return e
   }
 
   const handleSubmit = (e) => {
@@ -28,14 +28,12 @@ function Login({ navigate }) {
   return (
     <div>
       <Navbar navigate={navigate} />
-
       <div className="auth-container">
         <div className="auth-card">
           <h2>Welcome back</h2>
           <p className="subtitle">Login to find your roommate</p>
 
           <form onSubmit={handleSubmit}>
-
             <div className="form-group">
               <label>Email</label>
               <input
@@ -61,14 +59,11 @@ function Login({ navigate }) {
             </div>
 
             <Button text="Login" type="primary" fullWidth={true} submit={true} />
-
           </form>
 
           <div className="auth-link">
             No account?{' '}
-            <a onClick={() => navigate('register')} style={{ cursor: 'pointer' }}>
-              Register here
-            </a>
+            <a onClick={() => navigate('register')}>Register here</a>
           </div>
         </div>
       </div>
