@@ -20,9 +20,10 @@ function App() {
 
   const navigate = (p) => setPage(p)
 
-  const handleSetUser = (u) => {
+  const handleSetUser = (u, token) => {
     setUser(u)
     localStorage.setItem('rm_user', JSON.stringify(u))
+    if (token) localStorage.setItem('rm_token', token)
   }
 
   const handleSetProfile = (p) => {
@@ -35,6 +36,7 @@ function App() {
     setUserProfile(null)
     localStorage.removeItem('rm_user')
     localStorage.removeItem('rm_profile')
+    localStorage.removeItem('rm_token')
     setPage('home')
   }
 

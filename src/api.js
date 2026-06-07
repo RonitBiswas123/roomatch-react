@@ -1,11 +1,18 @@
 const BASE_URL = 'http://localhost:8000/api'
 
+// ── Get token from localStorage ──
+const getToken = () => localStorage.getItem('rm_token')
+
 // ── Helper function ──
-async function request(method, endpoint, body = null) {
-  const options = {
-    method,
-    headers: { 'Content-Type': 'application/json' },
+async function request(method, endpoint, body = null, auth = false) {
+  const headers = { 'Content-Type': 'application/json' }
+
+  if (auth) {
+    const token = getToken()
+    if (token) headers['Authorization'] = `Bearer ${token}`
   }
+
+  const options = { method, headers }
   if (body) options.body = JSON.stringify(body)
 
   const response = await fetch(`${BASE_URL}${endpoint}`, options)
@@ -27,14 +34,17 @@ export const registerUser = (userData) =>
 export const loginUser = (credentials) =>
   request('POST', '/login', credentials)
 
+export const getMe = () =>
+  request('GET', '/me', null, true)
+
 // ══════════════════════════════
 // PROFILE
 // ══════════════════════════════
 export const createProfile = (userId, profileData) =>
-  request('POST', `/profile/${userId}`, profileData)
+  request('POST', `/profile/${userId}`, profileData, true)
 
 export const getProfile = (userId) =>
-  request('GET', `/profile/${userId}`)
+  request('GET', `/profile/${userId}`, null, true)
 
 // ══════════════════════════════
 // STUDENTS

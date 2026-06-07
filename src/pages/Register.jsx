@@ -52,7 +52,7 @@ function Register({ navigate, setUser }) {
         year:     parseInt(form.year),
         gender:   form.gender
       })
-      setUser({ ...data.user })
+      setUser({ ...data.user }, data.access_token)
       setSuccess(true)
     } catch (err) {
       setApiError(err.message)

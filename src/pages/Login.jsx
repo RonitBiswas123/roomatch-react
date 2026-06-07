@@ -1,11 +1,13 @@
 import { useState } from 'react'
 import Navbar from '../components/Navbar'
-import Button from '../components/Button'
+import { loginUser } from '../api'
 
 function Login({ navigate, setUser }) {
   const [email,    setEmail]    = useState('')
   const [password, setPassword] = useState('')
   const [errors,   setErrors]   = useState({})
+  const [loading,  setLoading]  = useState(false)
+  const [apiError, setApiError] = useState('')
 
   const validate = () => {
     const e = {}
@@ -15,11 +17,23 @@ function Login({ navigate, setUser }) {
     return e
   }
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
     const newErrors = validate()
     if (Object.keys(newErrors).length > 0) { setErrors(newErrors); return }
-    alert('Login coming on Day 15 with backend!')
+
+    setLoading(true)
+    setApiError('')
+
+    try {
+      const data = await loginUser({ email, password })
+      setUser({ ...data.user }, data.access_token)
+      navigate('dashboard')
+    } catch (err) {
+      setApiError(err.message)
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
@@ -29,6 +43,12 @@ function Login({ navigate, setUser }) {
         <div className="bg-white rounded-2xl shadow-lg p-10 w-full max-w-md">
           <h2 className="text-2xl font-bold text-slate-900 mb-1">Welcome back</h2>
           <p className="text-sm text-slate-400 mb-7">Login to find your roommate</p>
+
+          {apiError && (
+            <div className="bg-red-50 border border-red-200 text-red-600 text-sm px-4 py-3 rounded-lg mb-4">
+              {apiError}
+            </div>
+          )}
 
           <form onSubmit={handleSubmit} className="flex flex-col gap-4">
 
@@ -56,7 +76,14 @@ function Login({ navigate, setUser }) {
               {errors.password && <p className="text-red-500 text-xs mt-1">{errors.password}</p>}
             </div>
 
-            <Button text="Login" type="primary" fullWidth={true} submit={true} />
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full py-3 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-300 text-white rounded-lg font-semibold text-sm transition-colors"
+            >
+              {loading ? 'Logging in...' : 'Login'}
+            </button>
+
           </form>
 
           <p className="text-center text-sm text-slate-400 mt-5">
