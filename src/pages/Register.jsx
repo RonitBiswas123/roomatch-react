@@ -1,11 +1,13 @@
 import { useState } from 'react'
 import Navbar from '../components/Navbar'
-import Button from '../components/Button'
+import { registerUser } from '../api'
 
 function Register({ navigate, setUser }) {
   const [form,     setForm]     = useState({ name: '', email: '', password: '', branch: '', year: '', gender: '' })
   const [errors,   setErrors]   = useState({})
   const [strength, setStrength] = useState('')
+  const [loading,  setLoading]  = useState(false)
+  const [apiError, setApiError] = useState('')
   const [success,  setSuccess]  = useState(false)
 
   const update = (field, value) => {
@@ -33,12 +35,30 @@ function Register({ navigate, setUser }) {
     return e
   }
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
     const newErrors = validate()
     if (Object.keys(newErrors).length > 0) { setErrors(newErrors); return }
-    setUser(form)
-    setSuccess(true)
+
+    setLoading(true)
+    setApiError('')
+
+    try {
+      const data = await registerUser({
+        name:     form.name,
+        email:    form.email,
+        password: form.password,
+        branch:   form.branch,
+        year:     parseInt(form.year),
+        gender:   form.gender
+      })
+      setUser({ ...data.user })
+      setSuccess(true)
+    } catch (err) {
+      setApiError(err.message)
+    } finally {
+      setLoading(false)
+    }
   }
 
   const inputClass = (field) =>
@@ -52,7 +72,12 @@ function Register({ navigate, setUser }) {
           <div className="bg-white rounded-2xl shadow-lg p-12 text-center max-w-md w-full">
             <h2 className="text-3xl font-bold text-slate-900 mb-3">🎉 Registered!</h2>
             <p className="text-slate-400 mb-8">Welcome, {form.name}! Now set up your profile.</p>
-            <Button text="Set Up Profile" type="primary" onClick={() => navigate('profile')} />
+            <button
+              className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold text-sm"
+              onClick={() => navigate('profile')}
+            >
+              Set Up Profile
+            </button>
           </div>
         </div>
       </div>
@@ -66,6 +91,12 @@ function Register({ navigate, setUser }) {
         <div className="bg-white rounded-2xl shadow-lg p-10 w-full max-w-md">
           <h2 className="text-2xl font-bold text-slate-900 mb-1">Create Account</h2>
           <p className="text-sm text-slate-400 mb-7">Join RoomMatch and find your perfect roommate</p>
+
+          {apiError && (
+            <div className="bg-red-50 border border-red-200 text-red-600 text-sm px-4 py-3 rounded-lg mb-4">
+              {apiError}
+            </div>
+          )}
 
           <form onSubmit={handleSubmit} className="flex flex-col gap-4">
 
@@ -133,7 +164,14 @@ function Register({ navigate, setUser }) {
               {errors.gender && <p className="text-red-500 text-xs mt-1">{errors.gender}</p>}
             </div>
 
-            <Button text="Register" type="primary" fullWidth={true} submit={true} />
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full py-3 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-300 text-white rounded-lg font-semibold text-sm transition-colors"
+            >
+              {loading ? 'Creating account...' : 'Register'}
+            </button>
+
           </form>
 
           <p className="text-center text-sm text-slate-400 mt-5">

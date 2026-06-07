@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import Navbar from '../components/Navbar'
-import Button from '../components/Button'
+import { createProfile } from '../api'
 
 function Profile({ navigate, user, setUserProfile }) {
   const [sleepTime,   setSleepTime]   = useState('')
@@ -12,6 +12,8 @@ function Profile({ navigate, user, setUserProfile }) {
   const [about,       setAbout]       = useState('')
   const [errors,      setErrors]      = useState({})
   const [saved,       setSaved]       = useState(false)
+  const [loading,     setLoading]     = useState(false)
+  const [apiError,    setApiError]    = useState('')
 
   const userName   = user ? user.name   : 'Your Name'
   const userBranch = user ? user.branch : 'Branch'
@@ -29,13 +31,38 @@ function Profile({ navigate, user, setUserProfile }) {
     return e
   }
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
     const newErrors = validate()
     if (Object.keys(newErrors).length > 0) { setErrors(newErrors); return }
-    const fullProfile = { ...user, sleepTime, wakeTime, studyHours, cleanliness, noise, guests, about }
-    setUserProfile(fullProfile)
-    setSaved(true)
+
+    setLoading(true)
+    setApiError('')
+
+    try {
+      await createProfile(user.id, {
+        sleep_time:   sleepTime,
+        wake_time:    wakeTime,
+        study_hours:  studyHours,
+        cleanliness:  cleanliness,
+        noise:        noise,
+        guests:       guests,
+        about:        about
+      })
+
+      const fullProfile = {
+        ...user,
+        sleepTime, wakeTime, studyHours,
+        cleanliness, noise, guests, about
+      }
+      setUserProfile(fullProfile)
+      setSaved(true)
+
+    } catch (err) {
+      setApiError(err.message)
+    } finally {
+      setLoading(false)
+    }
   }
 
   const selectClass = (field) =>
@@ -49,7 +76,12 @@ function Profile({ navigate, user, setUserProfile }) {
           <div className="bg-white rounded-2xl shadow-lg p-12 text-center max-w-md w-full">
             <h2 className="text-3xl font-bold text-slate-900 mb-3">Profile Saved! ✅</h2>
             <p className="text-slate-400 mb-8">Your profile is ready. Go to your dashboard!</p>
-            <Button text="Go to Dashboard" type="primary" onClick={() => navigate('dashboard')} />
+            <button
+              className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold text-sm"
+              onClick={() => navigate('dashboard')}
+            >
+              Go to Dashboard
+            </button>
           </div>
         </div>
       </div>
@@ -61,25 +93,30 @@ function Profile({ navigate, user, setUserProfile }) {
       <Navbar navigate={navigate} />
       <div className="max-w-4xl mx-auto px-6 py-10 flex gap-8 items-start">
 
-        {/* Form */}
         <div className="flex-1 bg-white rounded-2xl shadow-lg p-8">
           <h2 className="text-2xl font-bold text-slate-900 mb-1">Set Up Your Profile</h2>
           <p className="text-sm text-slate-400 mb-6">Tell us about your habits to find your perfect match</p>
 
+          {apiError && (
+            <div className="bg-red-50 border border-red-200 text-red-600 text-sm px-4 py-3 rounded-lg mb-4">
+              {apiError}
+            </div>
+          )}
+
           <form onSubmit={handleSubmit} className="flex flex-col gap-4">
 
             {[
-              { label: 'Usual Sleep Time', value: sleepTime, set: setSleepTime, field: 'sleepTime',
+              { label: 'Usual Sleep Time',  value: sleepTime,   set: setSleepTime,   field: 'sleepTime',
                 options: ['Before 10PM', '10PM - 12AM', '12AM - 2AM', 'After 2AM'] },
-              { label: 'Usual Wake Time', value: wakeTime, set: setWakeTime, field: 'wakeTime',
+              { label: 'Usual Wake Time',   value: wakeTime,    set: setWakeTime,    field: 'wakeTime',
                 options: ['Before 6AM', '6AM - 8AM', '8AM - 10AM', 'After 10AM'] },
-              { label: 'Daily Study Hours', value: studyHours, set: setStudyHours, field: 'studyHours',
+              { label: 'Daily Study Hours', value: studyHours,  set: setStudyHours,  field: 'studyHours',
                 options: ['0-2 hrs', '2-4 hrs', '4-6 hrs', '6+ hrs'] },
               { label: 'Cleanliness Level', value: cleanliness, set: setCleanliness, field: 'cleanliness',
                 options: ['Very Clean', 'Clean', 'Moderate', 'Relaxed'] },
-              { label: 'Noise Preference', value: noise, set: setNoise, field: 'noise',
+              { label: 'Noise Preference',  value: noise,       set: setNoise,       field: 'noise',
                 options: ['Silent', 'Quiet', 'Moderate', 'Loud'] },
-              { label: 'Guests / Visitors', value: guests, set: setGuests, field: 'guests',
+              { label: 'Guests / Visitors', value: guests,      set: setGuests,      field: 'guests',
                 options: ['No guests', 'Rare guests', 'Occasional', 'Frequent ok'] },
             ].map(item => (
               <div key={item.field}>
@@ -101,11 +138,18 @@ function Profile({ navigate, user, setUserProfile }) {
                 value={about}
                 onChange={(e) => setAbout(e.target.value)}
                 rows={3}
-                className="w-full px-4 py-2.5 border border-slate-200 rounded-lg text-sm outline-none focus:border-blue-500 resize-none transition-colors"
+                className="w-full px-4 py-2.5 border border-slate-200 rounded-lg text-sm outline-none focus:border-blue-500 resize-none"
               />
             </div>
 
-            <Button text="Save Profile" type="primary" fullWidth={true} submit={true} />
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full py-3 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-300 text-white rounded-lg font-semibold text-sm transition-colors"
+            >
+              {loading ? 'Saving...' : 'Save Profile'}
+            </button>
+
           </form>
         </div>
 

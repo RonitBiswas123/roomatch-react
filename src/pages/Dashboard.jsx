@@ -1,52 +1,31 @@
-// Add these imports at the top of Dashboard.jsx
+import { useState, useEffect, useMemo } from 'react'
+import Navbar from '../components/Navbar'
+import Button from '../components/Button'
 import ProfileCard from '../components/ProfileCard'
 import FilterBar from '../components/FilterBar'
-import { useState, useEffect, useMemo } from 'react'
-
-
-
-const allStudents = [
-  { id: 1, name: 'Rahul Sharma',  branch: 'CSE', year: 2, gender: 'Male',   sleepTime: '12AM - 2AM',  cleanliness: 'Clean',      noise: 'Quiet',    studyHours: '4-6 hrs' },
-  { id: 2, name: 'Priya Singh',   branch: 'ECE', year: 2, gender: 'Female', sleepTime: '10PM - 12AM', cleanliness: 'Very Clean', noise: 'Silent',   studyHours: '6+ hrs'  },
-  { id: 3, name: 'Arjun Mehta',   branch: 'CSE', year: 3, gender: 'Male',   sleepTime: 'After 2AM',   cleanliness: 'Moderate',   noise: 'Moderate', studyHours: '2-4 hrs' },
-  { id: 4, name: 'Sneha Reddy',   branch: 'ME',  year: 1, gender: 'Female', sleepTime: 'Before 10PM', cleanliness: 'Clean',      noise: 'Quiet',    studyHours: '4-6 hrs' },
-  { id: 5, name: 'Vikram Nair',   branch: 'EE',  year: 2, gender: 'Male',   sleepTime: '10PM - 12AM', cleanliness: 'Relaxed',    noise: 'Loud',     studyHours: '0-2 hrs' },
-  { id: 6, name: 'Ananya Gupta',  branch: 'CSE', year: 3, gender: 'Female', sleepTime: '12AM - 2AM',  cleanliness: 'Clean',      noise: 'Moderate', studyHours: '4-6 hrs' },
-]
+import { getStudents } from '../api'
 
 function calcCompatibility(userProfile, student) {
   let score = 0
-  if (userProfile.sleepTime   === student.sleepTime)   score += 30
-  if (userProfile.branch      === student.branch)      score += 20
-  if (userProfile.cleanliness === student.cleanliness) score += 20
-  if (userProfile.noise       === student.noise)       score += 15
-  if (userProfile.studyHours  === student.studyHours)  score += 15
+  if (userProfile.sleepTime   === student.sleep_time)   score += 30
+  if (userProfile.branch      === student.branch)       score += 20
+  if (userProfile.cleanliness === student.cleanliness)  score += 20
+  if (userProfile.noise       === student.noise)        score += 15
+  if (userProfile.studyHours  === student.study_hours)  score += 15
   return score
 }
 
 function Dashboard({ navigate, userProfile, onLogout }) {
-  const [loading,   setLoading]   = useState(true)
-  const [matches,   setMatches]   = useState([])
-  const [stats,     setStats]     = useState(null)
-  const [activeTab, setActiveTab] = useState('overview')
-  const [greeting,  setGreeting]  = useState('')
+  const [loading,      setLoading]      = useState(true)
+  const [matches,      setMatches]      = useState([])
+  const [stats,        setStats]        = useState(null)
+  const [activeTab,    setActiveTab]    = useState('overview')
+  const [greeting,     setGreeting]     = useState('')
   const [search,       setSearch]       = useState('')
-const [filterBranch, setFilterBranch] = useState('')
-const [filterYear,   setFilterYear]   = useState('')
-const [filterGender, setFilterGender] = useState('')
-const [sortBy,       setSortBy]       = useState('compatibility')
-
-const filteredMatches = useMemo(() => {
-  let result = [...matches]
-  if (search)       result = result.filter(s => s.name.toLowerCase().includes(search.toLowerCase()))
-  if (filterBranch) result = result.filter(s => s.branch === filterBranch)
-  if (filterYear)   result = result.filter(s => String(s.year) === filterYear)
-  if (filterGender) result = result.filter(s => s.gender === filterGender)
-  if (sortBy === 'compatibility') result.sort((a, b) => b.compatibility - a.compatibility)
-  if (sortBy === 'name')          result.sort((a, b) => a.name.localeCompare(b.name))
-  if (sortBy === 'year')          result.sort((a, b) => a.year - b.year)
-  return result
-}, [matches, search, filterBranch, filterYear, filterGender, sortBy])
+  const [filterBranch, setFilterBranch] = useState('')
+  const [filterYear,   setFilterYear]   = useState('')
+  const [filterGender, setFilterGender] = useState('')
+  const [sortBy,       setSortBy]       = useState('compatibility')
 
   useEffect(() => {
     const hour = new Date().getHours()
@@ -58,13 +37,23 @@ const filteredMatches = useMemo(() => {
   useEffect(() => {
     if (!userProfile) return
     setLoading(true)
-    const timer = setTimeout(() => {
-      const scored = allStudents.map(s => ({ ...s, compatibility: calcCompatibility(userProfile, s) }))
-      const sorted = scored.sort((a, b) => b.compatibility - a.compatibility)
-      setMatches(sorted)
-      setLoading(false)
-    }, 1500)
-    return () => clearTimeout(timer)
+
+    getStudents()
+      .then(data => {
+        if (data.students && data.students.length > 0) {
+          const scored = data.students.map(s => ({
+            ...s,
+            sleepTime:   s.sleep_time,
+            wakeTime:    s.wake_time,
+            studyHours:  s.study_hours,
+            compatibility: calcCompatibility(userProfile, s)
+          }))
+          const sorted = scored.sort((a, b) => b.compatibility - a.compatibility)
+          setMatches(sorted)
+        }
+      })
+      .catch(() => {})
+      .finally(() => setLoading(false))
   }, [userProfile])
 
   useEffect(() => {
@@ -80,6 +69,18 @@ const filteredMatches = useMemo(() => {
     if (userProfile) document.title = `${userProfile.name} — RoomMatch`
     return () => { document.title = 'RoomMatch' }
   }, [userProfile])
+
+  const filteredMatches = useMemo(() => {
+    let result = [...matches]
+    if (search)       result = result.filter(s => s.name.toLowerCase().includes(search.toLowerCase()))
+    if (filterBranch) result = result.filter(s => s.branch === filterBranch)
+    if (filterYear)   result = result.filter(s => String(s.year) === filterYear)
+    if (filterGender) result = result.filter(s => s.gender === filterGender)
+    if (sortBy === 'compatibility') result.sort((a, b) => b.compatibility - a.compatibility)
+    if (sortBy === 'name')          result.sort((a, b) => a.name.localeCompare(b.name))
+    if (sortBy === 'year')          result.sort((a, b) => a.year - b.year)
+    return result
+  }, [matches, search, filterBranch, filterYear, filterGender, sortBy])
 
   if (!userProfile) {
     return (
@@ -131,7 +132,7 @@ const filteredMatches = useMemo(() => {
           ))}
         </div>
 
-        {/* Overview */}
+        {/* Overview Tab */}
         {activeTab === 'overview' && (
           loading ? (
             <div className="text-center py-20 text-slate-400">
@@ -143,10 +144,10 @@ const filteredMatches = useMemo(() => {
               {stats && (
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
                   {[
-                    { num: matches.length,            label: 'Total Students' },
-                    { num: stats.highMatches,         label: 'Good Matches'   },
-                    { num: `${stats.avgScore}%`,      label: 'Avg Compatibility' },
-                    { num: `${stats.topMatch.compatibility}%`, label: 'Best Match' },
+                    { num: matches.length,                     label: 'Total Students'    },
+                    { num: stats.highMatches,                  label: 'Good Matches'      },
+                    { num: `${stats.avgScore}%`,               label: 'Avg Compatibility' },
+                    { num: `${stats.topMatch.compatibility}%`, label: 'Best Match'        },
                   ].map(s => (
                     <div key={s.label} className="bg-white rounded-xl p-5 text-center shadow-sm">
                       <div className="text-3xl font-bold text-blue-600 mb-1">{s.num}</div>
@@ -155,19 +156,24 @@ const filteredMatches = useMemo(() => {
                   ))}
                 </div>
               )}
-              <h3 className="text-sm font-semibold text-slate-400 uppercase tracking-wide mb-4">Your Top Match</h3>
+              <h3 className="text-sm font-semibold text-slate-400 uppercase tracking-wide mb-4">
+                Your Top Match
+              </h3>
               {stats && (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-                  <Card
+                  <ProfileCard
                     name={stats.topMatch.name}
                     branch={stats.topMatch.branch}
                     year={stats.topMatch.year}
                     gender={stats.topMatch.gender}
                     compatibility={stats.topMatch.compatibility}
                     sleepTime={stats.topMatch.sleepTime}
+                    wakeTime={stats.topMatch.wakeTime}
                     cleanliness={stats.topMatch.cleanliness}
                     noise={stats.topMatch.noise}
                     studyHours={stats.topMatch.studyHours}
+                    guests={stats.topMatch.guests}
+                    about={stats.topMatch.about}
                   />
                 </div>
               )}
@@ -175,52 +181,54 @@ const filteredMatches = useMemo(() => {
           )
         )}
 
-        {/* Matches */}
+        {/* Matches Tab */}
         {activeTab === 'matches' && (
-  loading ? (
-    <div className="text-center py-20 text-slate-400">
-      <div className="w-10 h-10 border-4 border-slate-200 border-t-blue-600 rounded-full animate-spin mx-auto mb-4"></div>
-      <p>Loading matches...</p>
-    </div>
-  ) : (
-    <>
-      <FilterBar
-        search={search}             setSearch={setSearch}
-        filterBranch={filterBranch} setFilterBranch={setFilterBranch}
-        filterYear={filterYear}     setFilterYear={setFilterYear}
-        filterGender={filterGender} setFilterGender={setFilterGender}
-        sortBy={sortBy}             setSortBy={setSortBy}
-      />
-      <p className="text-sm text-slate-400 mb-4">
-        Showing <span className="font-semibold text-slate-700">{filteredMatches.length}</span> students
-      </p>
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-        {filteredMatches.map(student => (
-          <ProfileCard
-            key={student.id}
-            name={student.name}
-            branch={student.branch}
-            year={student.year}
-            gender={student.gender}
-            compatibility={student.compatibility}
-            sleepTime={student.sleepTime}
-            wakeTime={student.wakeTime}
-            cleanliness={student.cleanliness}
-            noise={student.noise}
-            studyHours={student.studyHours}
-            guests={student.guests}
-            about={student.about}
-          />
-        ))}
-      </div>
-    </>
-  )
-)}
+          loading ? (
+            <div className="text-center py-20 text-slate-400">
+              <div className="w-10 h-10 border-4 border-slate-200 border-t-blue-600 rounded-full animate-spin mx-auto mb-4"></div>
+              <p>Loading matches...</p>
+            </div>
+          ) : (
+            <>
+              <FilterBar
+                search={search}             setSearch={setSearch}
+                filterBranch={filterBranch} setFilterBranch={setFilterBranch}
+                filterYear={filterYear}     setFilterYear={setFilterYear}
+                filterGender={filterGender} setFilterGender={setFilterGender}
+                sortBy={sortBy}             setSortBy={setSortBy}
+              />
+              <p className="text-sm text-slate-400 mb-4">
+                Showing <span className="font-semibold text-slate-700">{filteredMatches.length}</span> students
+              </p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+                {filteredMatches.map(student => (
+                  <ProfileCard
+                    key={student.id}
+                    name={student.name}
+                    branch={student.branch}
+                    year={student.year}
+                    gender={student.gender}
+                    compatibility={student.compatibility}
+                    sleepTime={student.sleepTime}
+                    wakeTime={student.wakeTime}
+                    cleanliness={student.cleanliness}
+                    noise={student.noise}
+                    studyHours={student.studyHours}
+                    guests={student.guests}
+                    about={student.about}
+                  />
+                ))}
+              </div>
+            </>
+          )
+        )}
 
-        {/* Profile tab */}
+        {/* Profile Tab */}
         {activeTab === 'profile' && (
           <>
-            <h3 className="text-sm font-semibold text-slate-400 uppercase tracking-wide mb-4">Your Habits</h3>
+            <h3 className="text-sm font-semibold text-slate-400 uppercase tracking-wide mb-4">
+              Your Habits
+            </h3>
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 mb-6">
               {[
                 { label: 'Sleep Time',  value: userProfile.sleepTime,   icon: '🌙' },
