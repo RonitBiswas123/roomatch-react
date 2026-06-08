@@ -60,3 +60,14 @@ export const getStudents = (filters = {}) => {
 
 export const getAllUsers = () =>
   request('GET', '/users')
+// ══════════════════════════════
+// REQUESTS
+// ══════════════════════════════
+export const sendRequest = (receiverId) =>
+  request('POST', '/requests', { receiver_id: receiverId }, true)
+
+export const getRequests = () =>
+  request('GET', '/requests', null, true)
+
+export const updateRequest = (requestId, status) =>
+  request('PATCH', `/requests/${requestId}`, { status }, true)

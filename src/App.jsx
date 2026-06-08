@@ -1,24 +1,40 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Home from './pages/Home'
 import Login from './pages/Login'
 import Register from './pages/Register'
 import Profile from './pages/Profile'
 import Dashboard from './pages/Dashboard'
+import Search from './pages/Search'
+import ProtectedRoute from './components/ProtectedRoute'
+import GuestRoute from './components/GuestRoute'
+import { isTokenExpired, clearAuth, getUser, getProfile } from './utils/auth'
 
 function App() {
   const [page, setPage] = useState('home')
-
-  const [user, setUser] = useState(() => {
-    const saved = localStorage.getItem('rm_user')
-    return saved ? JSON.parse(saved) : null
-  })
-
-  const [userProfile, setUserProfile] = useState(() => {
-    const saved = localStorage.getItem('rm_profile')
-    return saved ? JSON.parse(saved) : null
-  })
+  const [user, setUser] = useState(() => getUser())
+  const [userProfile, setUserProfile] = useState(() => getProfile())
 
   const navigate = (p) => setPage(p)
+
+  useEffect(() => {
+    if (isTokenExpired()) {
+      clearAuth()
+      setUser(null)
+      setUserProfile(null)
+    }
+  }, [])
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (isTokenExpired()) {
+        clearAuth()
+        setUser(null)
+        setUserProfile(null)
+        setPage('login')
+      }
+    }, 5 * 60 * 1000)
+    return () => clearInterval(interval)
+  }, [])
 
   const handleSetUser = (u, token) => {
     setUser(u)
@@ -32,18 +48,42 @@ function App() {
   }
 
   const handleLogout = () => {
+    clearAuth()
     setUser(null)
     setUserProfile(null)
-    localStorage.removeItem('rm_user')
-    localStorage.removeItem('rm_profile')
-    localStorage.removeItem('rm_token')
     setPage('home')
   }
 
-  if (page === 'login')     return <Login     navigate={navigate} setUser={handleSetUser} />
-  if (page === 'register')  return <Register  navigate={navigate} setUser={handleSetUser} />
-  if (page === 'profile')   return <Profile   navigate={navigate} user={user} setUserProfile={handleSetProfile} />
-  if (page === 'dashboard') return <Dashboard navigate={navigate} userProfile={userProfile} onLogout={handleLogout} />
+  if (page === 'login') return (
+    <GuestRoute navigate={navigate}>
+      <Login navigate={navigate} setUser={handleSetUser} />
+    </GuestRoute>
+  )
+
+  if (page === 'register') return (
+    <GuestRoute navigate={navigate}>
+      <Register navigate={navigate} setUser={handleSetUser} />
+    </GuestRoute>
+  )
+
+  if (page === 'profile') return (
+    <ProtectedRoute navigate={navigate} userProfile={userProfile}>
+      <Profile navigate={navigate} user={user} setUserProfile={handleSetProfile} />
+    </ProtectedRoute>
+  )
+
+  if (page === 'dashboard') return (
+    <ProtectedRoute navigate={navigate} requireProfile={true} userProfile={userProfile}>
+      <Dashboard navigate={navigate} userProfile={userProfile} onLogout={handleLogout} />
+    </ProtectedRoute>
+  )
+
+  if (page === 'search') return (
+    <ProtectedRoute navigate={navigate} userProfile={userProfile}>
+      <Search navigate={navigate} userProfile={userProfile} onLogout={handleLogout} />
+    </ProtectedRoute>
+  )
+
   return <Home navigate={navigate} userProfile={userProfile} />
 }
 

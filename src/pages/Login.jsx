@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Navbar from '../components/Navbar'
 import { loginUser } from '../api'
 
@@ -8,6 +8,15 @@ function Login({ navigate, setUser }) {
   const [errors,   setErrors]   = useState({})
   const [loading,  setLoading]  = useState(false)
   const [apiError, setApiError] = useState('')
+
+  // Check for session expired message
+  useEffect(() => {
+    const expired = sessionStorage.getItem('session_expired')
+    if (expired) {
+      setApiError('Your session expired. Please login again.')
+      sessionStorage.removeItem('session_expired')
+    }
+  }, [])
 
   const validate = () => {
     const e = {}
