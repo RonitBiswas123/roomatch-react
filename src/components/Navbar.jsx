@@ -14,6 +14,10 @@ function Navbar({ navigate, userProfile, onLogout }) {
                className="text-blue-300 hover:text-white cursor-pointer text-sm">
               Dashboard
             </a>
+            <a onClick={() => navigate('recommendations')}
+   className="text-blue-300 hover:text-white cursor-pointer text-sm">
+  Matches
+</a>
             <a onClick={() => navigate('search')}
                className="text-blue-300 hover:text-white cursor-pointer text-sm">
               Search

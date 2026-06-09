@@ -71,3 +71,6 @@ export const getRequests = () =>
 
 export const updateRequest = (requestId, status) =>
   request('PATCH', `/requests/${requestId}`, { status }, true)
+
+export const getRecommendations = () =>
+  request('GET', '/recommendations', null, true)

@@ -8,6 +8,7 @@ import Search from './pages/Search'
 import ProtectedRoute from './components/ProtectedRoute'
 import GuestRoute from './components/GuestRoute'
 import { isTokenExpired, clearAuth, getUser, getProfile } from './utils/auth'
+import Recommendations from './pages/Recommendations'
 
 function App() {
   const [page, setPage] = useState('home')
@@ -83,7 +84,11 @@ function App() {
       <Search navigate={navigate} userProfile={userProfile} onLogout={handleLogout} />
     </ProtectedRoute>
   )
-
+  if (page === 'recommendations') return (
+  <ProtectedRoute navigate={navigate} userProfile={userProfile}>
+    <Recommendations navigate={navigate} userProfile={userProfile} onLogout={handleLogout} />
+  </ProtectedRoute>
+)
   return <Home navigate={navigate} userProfile={userProfile} />
 }
 

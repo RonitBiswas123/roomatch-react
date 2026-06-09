@@ -4,6 +4,7 @@ import Button from '../components/Button'
 import ProfileCard from '../components/ProfileCard'
 import FilterBar from '../components/FilterBar'
 import { getStudents } from '../api'
+import { getRecommendations } from '../api'
 
 function calcCompatibility(userProfile, student) {
   let score = 0
@@ -34,27 +35,25 @@ function Dashboard({ navigate, userProfile, onLogout }) {
     else                setGreeting('Good Evening')
   }, [])
 
-  useEffect(() => {
-    if (!userProfile) return
-    setLoading(true)
+ 
 
-    getStudents()
-      .then(data => {
-        if (data.students && data.students.length > 0) {
-          const scored = data.students.map(s => ({
-            ...s,
-            sleepTime:   s.sleep_time,
-            wakeTime:    s.wake_time,
-            studyHours:  s.study_hours,
-            compatibility: calcCompatibility(userProfile, s)
-          }))
-          const sorted = scored.sort((a, b) => b.compatibility - a.compatibility)
-          setMatches(sorted)
-        }
-      })
-      .catch(() => {})
-      .finally(() => setLoading(false))
-  }, [userProfile])
+useEffect(() => {
+  if (!userProfile) return
+  setLoading(true)
+
+  getRecommendations()
+    .then(data => {
+      const scored = data.recommendations.map(s => ({
+        ...s,
+        sleepTime:  s.sleep_time,
+        wakeTime:   s.wake_time,
+        studyHours: s.study_hours,
+      }))
+      setMatches(scored)
+    })
+    .catch(() => {})
+    .finally(() => setLoading(false))
+}, [userProfile])
 
   useEffect(() => {
     if (matches.length === 0) return
