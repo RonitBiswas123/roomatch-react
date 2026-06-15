@@ -1,4 +1,4 @@
-const BASE_URL = 'http://localhost:8000/api'
+const BASE_URL = 'https://roommatch-backend-production-3ee2.up.railway.app/api'
 
 const getToken = () => localStorage.getItem('rm_token')
 
@@ -22,6 +22,7 @@ export const getMe         = ()                    => request('GET',  '/me', nul
 export const createProfile = (userId, profileData) => request('POST', `/profile/${userId}`, profileData, true)
 export const getProfile    = (userId)              => request('GET',  `/profile/${userId}`, null, true)
 export const getAllUsers    = ()                    => request('GET',  '/users')
+export const extractTraits = (text)                => request('POST', '/extract-traits', { text }, true)
 
 export const getStudents = (filters = {}) => {
   const params = new URLSearchParams()
@@ -41,6 +42,8 @@ export const getRecommendations = (filters = {}) => {
   return request('GET', `/recommendations${query}`, null, true)
 }
 
-export const sendRequest   = (receiverId)          => request('POST',  '/requests', { receiver_id: receiverId }, true)
-export const getRequests   = ()                    => request('GET',   '/requests', null, true)
-export const updateRequest = (requestId, status)   => request('PATCH', `/requests/${requestId}`, { status }, true)
+export const sendRequest   = (receiverId)        => request('POST',  '/requests', { receiver_id: receiverId }, true)
+export const getRequests   = ()                  => request('GET',   '/requests', null, true)
+export const updateRequest = (requestId, status) => request('PATCH', `/requests/${requestId}`, { status }, true)
+export const getAdminStats = () =>
+  request('GET', '/admin/stats', null, true)

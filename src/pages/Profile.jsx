@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import Navbar from '../components/Navbar'
-import { createProfile } from '../api'
+import { createProfile, extractTraits } from '../api'
 
 function Profile({ navigate, user, setUserProfile }) {
   const [sleepTime,   setSleepTime]   = useState('')
@@ -10,6 +10,9 @@ function Profile({ navigate, user, setUserProfile }) {
   const [noise,       setNoise]       = useState('')
   const [guests,      setGuests]      = useState('')
   const [about,       setAbout]       = useState('')
+  const [aboutText,   setAboutText]   = useState('')
+  const [aiTraits,    setAiTraits]    = useState([])
+  const [extracting,  setExtracting]  = useState(false)
   const [errors,      setErrors]      = useState({})
   const [saved,       setSaved]       = useState(false)
   const [loading,     setLoading]     = useState(false)
@@ -31,14 +34,33 @@ function Profile({ navigate, user, setUserProfile }) {
     return e
   }
 
+  const handleExtractTraits = async () => {
+    if (!aboutText || aboutText.trim().length < 10) {
+      setApiError('Write at least 10 characters about yourself first')
+      return
+    }
+    setExtracting(true)
+    setApiError('')
+    try {
+      const data = await extractTraits(aboutText)
+      setAiTraits(data.traits)
+    } catch (err) {
+      setApiError(err.message)
+    } finally {
+      setExtracting(false)
+    }
+  }
+
+  const removeTrait = (trait) => {
+    setAiTraits(prev => prev.filter(t => t !== trait))
+  }
+
   const handleSubmit = async (e) => {
     e.preventDefault()
     const newErrors = validate()
     if (Object.keys(newErrors).length > 0) { setErrors(newErrors); return }
-
     setLoading(true)
     setApiError('')
-
     try {
       await createProfile(user.id, {
         sleep_time:   sleepTime,
@@ -47,17 +69,18 @@ function Profile({ navigate, user, setUserProfile }) {
         cleanliness:  cleanliness,
         noise:        noise,
         guests:       guests,
-        about:        about
+        about:        about,
+        about_text:   aboutText,
+        ai_traits:    aiTraits
       })
-
       const fullProfile = {
         ...user,
         sleepTime, wakeTime, studyHours,
-        cleanliness, noise, guests, about
+        cleanliness, noise, guests, about,
+        aboutText, aiTraits
       }
       setUserProfile(fullProfile)
       setSaved(true)
-
     } catch (err) {
       setApiError(err.message)
     } finally {
@@ -75,7 +98,19 @@ function Profile({ navigate, user, setUserProfile }) {
         <div className="flex justify-center items-center min-h-[85vh] px-4">
           <div className="bg-white rounded-2xl shadow-lg p-12 text-center max-w-md w-full">
             <h2 className="text-3xl font-bold text-slate-900 mb-3">Profile Saved! ✅</h2>
-            <p className="text-slate-400 mb-8">Your profile is ready. Go to your dashboard!</p>
+            <p className="text-slate-400 mb-4">Your profile is ready.</p>
+            {aiTraits.length > 0 && (
+              <div className="mb-6">
+                <p className="text-sm text-slate-500 mb-2">AI detected your traits:</p>
+                <div className="flex flex-wrap gap-2 justify-center">
+                  {aiTraits.map((trait, i) => (
+                    <span key={i} className="text-xs px-3 py-1 rounded-full bg-purple-50 text-purple-600 border border-purple-200 font-medium">
+                      ✨ {trait}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
             <button
               className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold text-sm"
               onClick={() => navigate('dashboard')}
@@ -131,15 +166,62 @@ function Profile({ navigate, user, setUserProfile }) {
 
             <div>
               <label className="block text-xs font-semibold text-slate-500 mb-1">
-                About You <span className="text-slate-300 font-normal">(optional)</span>
+                Short Bio <span className="text-slate-300 font-normal">(optional)</span>
               </label>
               <textarea
                 placeholder="I am a CSE student who loves coding at night..."
                 value={about}
                 onChange={(e) => setAbout(e.target.value)}
-                rows={3}
+                rows={2}
                 className="w-full px-4 py-2.5 border border-slate-200 rounded-lg text-sm outline-none focus:border-blue-500 resize-none"
               />
+            </div>
+
+            {/* AI Section */}
+            <div className="border border-purple-100 rounded-xl p-4 bg-purple-50">
+              <div className="flex items-center gap-2 mb-2">
+                <span className="text-lg">✨</span>
+                <label className="text-sm font-semibold text-purple-700">AI Trait Extraction</label>
+                <span className="text-xs px-2 py-0.5 rounded-full bg-purple-100 text-purple-600 font-medium">
+                  Powered by Gemini
+                </span>
+              </div>
+              <p className="text-xs text-purple-500 mb-3">
+                Describe yourself — Gemini will extract your personality traits automatically
+              </p>
+              <textarea
+                placeholder="I'm a night owl who loves coding and gaming. I'm quite introverted and prefer a quiet environment. I study around 6 hours daily and keep my space very clean..."
+                value={aboutText}
+                onChange={(e) => setAboutText(e.target.value)}
+                rows={4}
+                className="w-full px-4 py-2.5 border border-purple-200 rounded-lg text-sm outline-none focus:border-purple-400 resize-none bg-white mb-3"
+              />
+              <button
+                type="button"
+                onClick={handleExtractTraits}
+                disabled={extracting}
+                className="w-full py-2.5 bg-purple-600 hover:bg-purple-700 disabled:bg-purple-300 text-white rounded-lg text-sm font-medium transition-colors"
+              >
+                {extracting ? '✨ Analyzing with Gemini...' : '✨ Extract My Traits'}
+              </button>
+
+              {aiTraits.length > 0 && (
+                <div className="mt-3">
+                  <p className="text-xs text-purple-600 font-medium mb-2">Detected traits — click to remove:</p>
+                  <div className="flex flex-wrap gap-2">
+                    {aiTraits.map((trait, i) => (
+                      <button
+                        key={i}
+                        type="button"
+                        onClick={() => removeTrait(trait)}
+                        className="text-xs px-3 py-1 rounded-full bg-white text-purple-600 border border-purple-200 hover:bg-red-50 hover:border-red-200 hover:text-red-500 transition-colors"
+                      >
+                        {trait} ✕
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
 
             <button
@@ -165,12 +247,22 @@ function Profile({ navigate, user, setUserProfile }) {
             <div className="text-lg font-semibold text-slate-900">{userName}</div>
             <div className="text-sm text-slate-400 mb-3">{userBranch} • Year {userYear}</div>
 
-            <div className="flex flex-wrap gap-1.5 justify-center mb-4">
+            <div className="flex flex-wrap gap-1.5 justify-center mb-3">
               {sleepTime   && <span className="text-xs px-2 py-1 rounded-full bg-blue-50 text-blue-600">{sleepTime}</span>}
               {cleanliness && <span className="text-xs px-2 py-1 rounded-full bg-blue-50 text-blue-600">{cleanliness}</span>}
               {noise       && <span className="text-xs px-2 py-1 rounded-full bg-blue-50 text-blue-600">{noise}</span>}
               {studyHours  && <span className="text-xs px-2 py-1 rounded-full bg-blue-50 text-blue-600">{studyHours}</span>}
             </div>
+
+            {aiTraits.length > 0 && (
+              <div className="flex flex-wrap gap-1.5 justify-center mb-3">
+                {aiTraits.map((trait, i) => (
+                  <span key={i} className="text-xs px-2 py-1 rounded-full bg-purple-50 text-purple-600">
+                    ✨ {trait}
+                  </span>
+                ))}
+              </div>
+            )}
 
             {[
               { label: 'Sleeps',  value: sleepTime   || '—' },

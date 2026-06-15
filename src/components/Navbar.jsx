@@ -7,24 +7,32 @@ function Navbar({ navigate, userProfile, onLogout }) {
       >
         RoomMatch
       </span>
-      <div className="flex gap-6 items-center">
+      <div className="flex gap-5 items-center">
         {userProfile ? (
           <>
             <a onClick={() => navigate('dashboard')}
                className="text-blue-300 hover:text-white cursor-pointer text-sm">
               Dashboard
             </a>
-            <a onClick={() => navigate('recommendations')}
-   className="text-blue-300 hover:text-white cursor-pointer text-sm">
-  Matches
-</a>
             <a onClick={() => navigate('search')}
                className="text-blue-300 hover:text-white cursor-pointer text-sm">
               Search
             </a>
+            <a onClick={() => navigate('recommendations')}
+               className="text-blue-300 hover:text-white cursor-pointer text-sm">
+              Matches
+            </a>
+            <a onClick={() => navigate('requests')}
+               className="text-blue-300 hover:text-white cursor-pointer text-sm">
+              Requests
+            </a>
+            <a onClick={() => navigate('admin')}
+               className="text-blue-300 hover:text-white cursor-pointer text-sm">
+              Admin
+            </a>
             <a onClick={() => navigate('profile')}
                className="text-blue-300 hover:text-white cursor-pointer text-sm">
-              Edit Profile
+              Profile
             </a>
             <a onClick={onLogout}
                className="text-red-400 hover:text-red-300 cursor-pointer text-sm">
