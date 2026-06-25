@@ -3,6 +3,12 @@ import Navbar from '../components/Navbar'
 import { createProfile, extractTraits } from '../api'
 
 function Profile({ navigate, user, setUserProfile }) {
+
+  if (!user) {
+    navigate('login')
+    return null
+  }
+
   const [sleepTime,   setSleepTime]   = useState('')
   const [wakeTime,    setWakeTime]    = useState('')
   const [studyHours,  setStudyHours]  = useState('')
@@ -18,9 +24,9 @@ function Profile({ navigate, user, setUserProfile }) {
   const [loading,     setLoading]     = useState(false)
   const [apiError,    setApiError]    = useState('')
 
-  const userName   = user ? user.name   : 'Your Name'
-  const userBranch = user ? user.branch : 'Branch'
-  const userYear   = user ? user.year   : '1'
+  const userName   = user.name
+  const userBranch = user.branch
+  const userYear   = user.year
   const initials   = userName.split(' ').map(n => n[0]).join('').toUpperCase()
 
   const validate = () => {
@@ -190,7 +196,7 @@ function Profile({ navigate, user, setUserProfile }) {
                 Describe yourself — Gemini will extract your personality traits automatically
               </p>
               <textarea
-                placeholder="I'm a night owl who loves coding and gaming. I'm quite introverted and prefer a quiet environment. I study around 6 hours daily and keep my space very clean..."
+                placeholder="I'm a night owl who loves coding and gaming. I'm quite introverted and prefer a quiet environment..."
                 value={aboutText}
                 onChange={(e) => setAboutText(e.target.value)}
                 rows={4}
