@@ -1,14 +1,8 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Navbar from '../components/Navbar'
 import { createProfile, extractTraits } from '../api'
 
 function Profile({ navigate, user, setUserProfile }) {
-
-  if (!user) {
-    navigate('login')
-    return null
-  }
-
   const [sleepTime,   setSleepTime]   = useState('')
   const [wakeTime,    setWakeTime]    = useState('')
   const [studyHours,  setStudyHours]  = useState('')
@@ -23,6 +17,12 @@ function Profile({ navigate, user, setUserProfile }) {
   const [saved,       setSaved]       = useState(false)
   const [loading,     setLoading]     = useState(false)
   const [apiError,    setApiError]    = useState('')
+
+  useEffect(() => {
+    if (!user) navigate('login')
+  }, [user])
+
+  if (!user) return null
 
   const userName   = user.name
   const userBranch = user.branch
@@ -183,7 +183,6 @@ function Profile({ navigate, user, setUserProfile }) {
               />
             </div>
 
-            {/* AI Section */}
             <div className="border border-purple-100 rounded-xl p-4 bg-purple-50">
               <div className="flex items-center gap-2 mb-2">
                 <span className="text-lg">✨</span>
@@ -241,7 +240,6 @@ function Profile({ navigate, user, setUserProfile }) {
           </form>
         </div>
 
-        {/* Live Preview */}
         <div className="w-72 flex-shrink-0 sticky top-6">
           <p className="text-xs font-semibold text-slate-400 uppercase tracking-widest text-center mb-3">
             Live Preview
