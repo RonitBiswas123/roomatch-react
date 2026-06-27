@@ -57,46 +57,56 @@ function App() {
     setPage('home')
   }
 
+  // Loading state — user just registered/logged in
+  // Pass user directly to Profile instead of reading from state
   if (page === 'login') return (
     <GuestRoute navigate={navigate}>
       <Login navigate={navigate} setUser={handleSetUser} />
     </GuestRoute>
   )
+
   if (page === 'register') return (
     <GuestRoute navigate={navigate}>
       <Register navigate={navigate} setUser={handleSetUser} />
     </GuestRoute>
   )
+
   if (page === 'profile') return (
     <ProtectedRoute navigate={navigate} userProfile={userProfile}>
       <Profile navigate={navigate} user={user} setUserProfile={handleSetProfile} />
     </ProtectedRoute>
   )
+
   if (page === 'dashboard') return (
     <ProtectedRoute navigate={navigate} requireProfile={true} userProfile={userProfile}>
       <Dashboard navigate={navigate} userProfile={userProfile} onLogout={handleLogout} />
     </ProtectedRoute>
   )
+
   if (page === 'search') return (
     <ProtectedRoute navigate={navigate} userProfile={userProfile}>
       <Search navigate={navigate} userProfile={userProfile} onLogout={handleLogout} />
     </ProtectedRoute>
   )
+
   if (page === 'requests') return (
     <ProtectedRoute navigate={navigate} userProfile={userProfile}>
       <Requests navigate={navigate} userProfile={userProfile} onLogout={handleLogout} />
     </ProtectedRoute>
   )
+
   if (page === 'recommendations') return (
     <ProtectedRoute navigate={navigate} userProfile={userProfile}>
       <Recommendations navigate={navigate} userProfile={userProfile} onLogout={handleLogout} />
     </ProtectedRoute>
   )
+
   if (page === 'admin') return (
     <ProtectedRoute navigate={navigate} userProfile={userProfile}>
       <Admin navigate={navigate} userProfile={userProfile} onLogout={handleLogout} />
     </ProtectedRoute>
   )
+
   return <Home navigate={navigate} userProfile={userProfile} />
 }
 

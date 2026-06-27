@@ -9,6 +9,7 @@ function Register({ navigate, setUser }) {
   const [loading,  setLoading]  = useState(false)
   const [apiError, setApiError] = useState('')
   const [success,  setSuccess]  = useState(false)
+  const [userName, setUserName] = useState('')
 
   const update = (field, value) => {
     setForm(prev => ({ ...prev, [field]: value }))
@@ -52,6 +53,7 @@ function Register({ navigate, setUser }) {
         year:     parseInt(form.year),
         gender:   form.gender
       })
+      setUserName(form.name)
       setUser({ ...data.user }, data.access_token)
       setSuccess(true)
     } catch (err) {
@@ -70,13 +72,13 @@ function Register({ navigate, setUser }) {
         <Navbar navigate={navigate} />
         <div className="flex justify-center items-center min-h-[85vh] px-4">
           <div className="bg-white rounded-2xl shadow-lg p-12 text-center max-w-md w-full">
-            <h2 className="text-3xl font-bold text-slate-900 mb-3">🎉 Registered!</h2>
-            <p className="text-slate-400 mb-8">Welcome, {form.name}! Now set up your profile.</p>
+            <h2 className="text-3xl font-bold text-slate-900 mb-3">🎉 Welcome, {userName.split(' ')[0]}!</h2>
+            <p className="text-slate-400 mb-8">Account created successfully. Now set up your profile to find roommates.</p>
             <button
               className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold text-sm"
               onClick={() => navigate('profile')}
             >
-              Set Up Profile
+              Set Up Profile →
             </button>
           </div>
         </div>
